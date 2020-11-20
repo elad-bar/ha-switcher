@@ -1,0 +1,29 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Switcher",
+        "description": "Set up Switcher device's details",
+        "data": {
+          "host": "Host",
+          "device-id": "Device ID"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Device is already configured",
+      "invalid_device_details": "Invalid device details"
+    }
+  },
+  "options": {
+      "step": {
+          "switcher_additional_settings": {
+              "title": "Options for Switcher.",
+              "description": "Set up details.",
+              "data": {
+                  "log_level": "Log level"
+              }
+          }
+      }
+  }
+}
