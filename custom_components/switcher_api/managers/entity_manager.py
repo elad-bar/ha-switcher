@@ -301,7 +301,7 @@ class EntityManager:
         except Exception as ex:
             self.log_exception(ex, "Failed to generate electric current sensor")
 
-    def get_main_switch(self, state) -> EntityData:
+    def get_main_switch(self, state_data) -> EntityData:
         entity = None
 
         try:
@@ -310,9 +310,13 @@ class EntityManager:
             entity_name = f"{self.integration_title}"
             unique_id = f"{DOMAIN}-{DOMAIN_SWITCH}-{entity_name}"
 
-            state = state.get("state", STATE_OFF) == STATE_ON
+            state = state_data.get(KEY_STATE, STATE_OFF) == STATE_ON
 
             attributes = {ATTR_FRIENDLY_NAME: entity_name}
+
+            for key in state_data:
+                if key not in [KEY_STATE, KEY_SUCCESSFUL]:
+                    attributes[key] = state_data[key]
 
             entity = EntityData()
 

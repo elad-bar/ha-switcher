@@ -7,7 +7,7 @@ from homeassistant.core import callback
 
 from .helpers.const import *
 from .managers.config_flow_manager import ConfigFlowManager
-from .models import AlreadyExistsError
+from .models import AlreadyExistsError, AutoOffError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -98,24 +98,28 @@ class DomainOptionsFlowHandler(config_entries.OptionsFlow):
         await self._config_flow.initialize(self.hass, self._config_entry)
 
         if user_input is not None:
-            if user_input is not None:
-                try:
-                    options = await self._config_flow.update_options(
-                        user_input, CONFIG_FLOW_OPTIONS
-                    )
+            try:
+                options = await self._config_flow.update_options(
+                    user_input, CONFIG_FLOW_OPTIONS
+                )
 
-                    return self.async_create_entry(
-                        title=self._config_flow.title, data=options
-                    )
+                return self.async_create_entry(
+                    title=self._config_flow.title, data=options
+                )
 
-                except AlreadyExistsError as aeex:
-                    _LOGGER.warning(
-                        f"{DEFAULT_NAME} with {ENTRY_PRIMARY_KEY}: {aeex.title} already exists"
-                    )
+            except AutoOffError as aoe:
+                _LOGGER.warning(f"Invalid value for auto-off {aoe.time}, Error: {aoe.error_code}")
 
-                    errors = {"base": "already_configured"}
+                errors = {"base": aoe.error_code}
 
-        schema = self._config_flow.get_default_options()
+            except AlreadyExistsError as aeex:
+                _LOGGER.warning(
+                    f"{DEFAULT_NAME} with {ENTRY_PRIMARY_KEY}: {aeex.title} already exists"
+                )
+
+                errors = {"base": "already_configured"}
+
+        schema = await self._config_flow.get_default_options()
 
         return self.async_show_form(
             step_id="switcher_additional_settings",

@@ -23,6 +23,7 @@ class ConfigManager:
         result.port = data.get(CONF_PORT, DEFAULT_PORT)
         result.is_ssl = data.get(CONF_SSL, DEFAULT_IS_SSL)
         result.host = data.get(CONF_HOST)
+        result.auto_off = options.get(CONF_AUTO_OFF)
 
         self.config_entry = config_entry
         self.data = result

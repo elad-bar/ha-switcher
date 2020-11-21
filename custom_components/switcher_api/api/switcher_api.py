@@ -94,7 +94,7 @@ class SwitcherApi:
             async with self._session.post(
                 url, data=json.dumps(data), ssl=self.ssl_context
             ) as response:
-                _LOGGER.debug(f"Status of {url}: {response.status}")
+                _LOGGER.debug(f"Status of POST {endpoint}: {response.status}")
 
                 response.raise_for_status()
 
@@ -124,7 +124,7 @@ class SwitcherApi:
             url = f"{self._base_url}{endpoint}"
 
             async with self._session.get(url, ssl=self.ssl_context) as response:
-                _LOGGER.debug(f"Status of {url}: {response.status}")
+                _LOGGER.debug(f"Status of GET {endpoint}: {response.status}")
 
                 response.raise_for_status()
 
@@ -152,7 +152,7 @@ class SwitcherApi:
             url = f"{self._base_url}{endpoint}"
 
             async with self._session.delete(url, ssl=self.ssl_context) as response:
-                _LOGGER.debug(f"Status of {url}: {response.status}")
+                _LOGGER.debug(f"Status of DELETE {endpoint}: {response.status}")
 
                 response.raise_for_status()
 
@@ -184,7 +184,7 @@ class SwitcherApi:
             async with self._session.patch(
                 url, data=json.dumps(data), ssl=self.ssl_context
             ) as response:
-                _LOGGER.debug(f"Status of {url}: {response.status}")
+                _LOGGER.debug(f"Status of PATCH {endpoint}: {response.status}")
 
                 response.raise_for_status()
 
@@ -216,7 +216,7 @@ class SwitcherApi:
             async with self._session.put(
                 url, data=json.dumps(data), ssl=self.ssl_context
             ) as response:
-                _LOGGER.debug(f"Status of {url}: {response.status}")
+                _LOGGER.debug(f"Status of PUT {endpoint}: {response.status}")
 
                 response.raise_for_status()
 
@@ -336,7 +336,7 @@ class SwitcherApi:
 
         return response
 
-    async def get_state(self):
+    async def get_state(self) -> dict:
         """Use for handling requests to /switcher_api/get_state."""
         response = None
 

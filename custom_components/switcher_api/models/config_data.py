@@ -15,6 +15,7 @@ class ConfigData:
         self.host = ""
         self.port = DEFAULT_PORT
         self.is_ssl = DEFAULT_IS_SSL
+        self.auto_off = None
 
         self.log_level = LOG_LEVEL_DEFAULT
 
@@ -24,6 +25,7 @@ class ConfigData:
             CONF_HOST: self.host,
             CONF_PORT: self.port,
             CONF_SSL: self.is_ssl,
+            CONF_AUTO_OFF: self.auto_off
         }
 
         to_string = f"{obj}"

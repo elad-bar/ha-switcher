@@ -5,6 +5,7 @@ https://home-assistant.io/components/switcher/
 """
 import logging
 import sys
+from datetime import datetime
 from typing import Optional
 
 from cryptography.fernet import InvalidToken
@@ -45,6 +46,8 @@ class HomeAssistantManager:
 
         self._config_manager = ConfigManager()
 
+        self._integration_name = None
+
     @property
     def api(self) -> SwitcherApi:
         return self._api
@@ -77,6 +80,8 @@ class HomeAssistantManager:
             _LOGGER.debug("Starting async_init")
 
             await self._config_manager.update(entry)
+
+            self._integration_name = entry.title
 
             self._api = SwitcherApi(self._hass, self._config_manager)
             self._entity_manager = EntityManager(self._hass, self)
@@ -137,6 +142,14 @@ class HomeAssistantManager:
 
             self._is_updating = True
 
+            title = self._config_manager.config_entry.title
+
+            if self._integration_name != self._config_manager.config_entry.title:
+                renamed = await self._api.set_device_name(title)
+
+                if renamed:
+                    self._integration_name = title
+
             await self._api.async_update()
 
             self.device_manager.update()
@@ -173,6 +186,13 @@ class HomeAssistantManager:
 
         if update_config_manager:
             await self._config_manager.update(entry)
+
+            state = await self.api.get_state()
+            state_auto_off = state.get(KEY_AUTO_OFF)
+
+            current_auto_off = self.config_data.auto_off
+            if current_auto_off is None:
+                self.config_data.auto_off = state_auto_off
 
         await self._async_update()
 

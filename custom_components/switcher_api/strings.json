@@ -22,9 +22,14 @@
               "title": "Options for Switcher API",
               "description": "Set up details.",
               "data": {
-                  "log_level": "Log level"
+                  "log_level": "Log level",
+                  "auto_off": "Auto-Off"
               }
           }
+      },
+      "error": {
+        "auto-off-below-minimum": "Invalid Auto-off value (Below minimum), must be between 59 to 180 minutes",
+        "auto-off-above-maximum": "Invalid Auto-off value (Above Maximum), must be between 59 to 180 minutes"
       }
   }
 }

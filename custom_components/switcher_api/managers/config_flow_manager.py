@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Any, Dict, Optional
 
 from cryptography.fernet import InvalidToken
@@ -11,7 +12,7 @@ from .. import get_ha
 from ..api.switcher_api import SwitcherApi
 from ..helpers.const import *
 from ..managers.configuration_manager import ConfigManager
-from ..models import LoginError
+from ..models import LoginError, AutoOffError
 from ..models.config_data import ConfigData
 
 _LOGGER = logging.getLogger(__name__)
@@ -60,7 +61,6 @@ class ConfigFlowManager:
 
     async def update_options(self, options: dict, flow: str):
         _LOGGER.debug("Update options")
-        validate_login = False
 
         new_options = await self._clone_items(options, flow)
 
@@ -68,8 +68,23 @@ class ConfigFlowManager:
 
         await self._update_entry()
 
-        if validate_login:
-            await self._handle_data(flow)
+        if flow == CONFIG_FLOW_OPTIONS:
+            auto_off_str = options.get(CONF_AUTO_OFF)
+
+            auto_off = datetime.strptime(auto_off_str, "%H:%M:%S")
+            auto_off_time = auto_off.time()
+
+            total_minutes = (auto_off_time.hour * 60) + auto_off_time.minute
+            if total_minutes < 60:
+                raise AutoOffError(auto_off_str, "auto-off-below-minimum")
+
+            if total_minutes > 180:
+                raise AutoOffError(auto_off_str, "auto-off-above-maximum")
+
+            ha = self._get_ha()
+            await ha.api.set_auto_shutdown(auto_off_time)
+
+            del options[CONF_AUTO_OFF]
 
         return new_options
 
@@ -107,14 +122,17 @@ class ConfigFlowManager:
 
         return data_schema
 
-    def get_default_options(self) -> vol.Schema:
+    async def get_default_options(self) -> vol.Schema:
         config_data = self.config_data
 
-        fields = self._get_default_fields(CONFIG_FLOW_OPTIONS)
+        ha = self._get_ha()
+        auto_off = ha.api.state.get(KEY_AUTO_OFF)
+        config_data.auto_off = auto_off
 
-        fields[vol.Optional(CONF_LOG_LEVEL, default=config_data.log_level)] = vol.In(
-            LOG_LEVELS
-        )
+        fields = {
+            vol.Optional(CONF_AUTO_OFF, default=config_data.auto_off): str,
+            vol.Optional(CONF_LOG_LEVEL, default=config_data.log_level): vol.In(LOG_LEVELS)
+        }
 
         data_schema = vol.Schema(fields)
 
@@ -158,21 +176,22 @@ class ConfigFlowManager:
 
         return new_user_input
 
-    def _get_ha(self, key: str = None):
-        if key is None:
-            key = self.title
-
-        ha = get_ha(self._hass, key)
+    def _get_ha(self):
+        ha = get_ha(self._hass, self._config_entry.entry_id)
 
         return ha
 
     async def _handle_data(self, flow):
+        api = None
+
         if flow != CONFIG_FLOW_INIT:
-            await self._valid_login()
+            api = await self._valid_login()
 
         if flow == CONFIG_FLOW_OPTIONS:
             config_entries = self._hass.config_entries
             config_entries.async_update_entry(self._config_entry, data=self._data)
+
+        return api
 
     async def _valid_login(self):
         errors = None
@@ -195,3 +214,5 @@ class ConfigFlowManager:
 
         if errors is not None:
             raise LoginError(errors)
+
+        return api
