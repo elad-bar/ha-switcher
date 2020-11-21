@@ -23,13 +23,13 @@
               "description": "Set up details.",
               "data": {
                   "log_level": "Log level",
-                  "auto_off": "Auto-Off"
+                  "auto_off": "Auto off interval"
               }
           }
       },
       "error": {
-        "auto-off-below-minimum": "Invalid Auto-off value (Below minimum), must be between 59 to 180 minutes",
-        "auto-off-above-maximum": "Invalid Auto-off value (Above Maximum), must be between 59 to 180 minutes"
+        "auto-off-below-minimum": "Auto-off interval below minimum, must be between 01:00:00 to 03:00:00 minutes",
+        "auto-off-above-maximum": "Auto-off interval above maximum, must be between 01:00:00 to 03:00:00 minutes"
       }
   }
 }

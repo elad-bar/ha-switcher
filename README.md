@@ -1,4 +1,4 @@
-# Switcher
+# Switcher API
 
 ## Description
 
@@ -13,20 +13,20 @@ Creates the following components:
 ## How to
 
 #### Requirements
-- Switcher device set up
-- Switcher integration is based on [switcher_webapi](https://github.com/TomerFi/switcher_webapi) by [@TomerFi](https://github.com/TomerFi), it requires to run the docker before configuring this intergation
+- Switcher device 
+- Switcher API docker [switcher_webapi](https://github.com/TomerFi/switcher_webapi) by [@TomerFi](https://github.com/TomerFi)
 
 #### Installations via HACS
-Add custom repository `https://github.com/elad-bar/ha-switcher
-`
-Look for "Switcher" and install
+Add custom repository `https://github.com/elad-bar/ha-switcher`
+
+Look for "Switcher API" and install
 
 
 #### Integration settings
 ###### Basic configuration (Configuration -> Integrations -> Add Switcher)
 Fields name | Type | Required | Default | Description
 --- | --- | --- | --- | --- |
-Host | Texbox | + | None | Hostname or IP address of the Switcher API
+Host | Textbox | + | None | Hostname or IP address of the Switcher API
 Post | Textbox | + | 8000 | Port of the Switcher API
 SSL | Checkbox | + | False | Whether the Switcher API is using SSL (HTTPS) or not 
 
@@ -34,6 +34,7 @@ SSL | Checkbox | + | False | Whether the Switcher API is using SSL (HTTPS) or no
 Fields name | Type | Required | Default | Description
 --- | --- | --- | --- | --- |
 Log level | Drop-down | + | Default | Changes component's log level (more details below)
+Auto off interval | Textbox | + | According to Switcher Device | Changes the auto-off interval (between 01:00:00 to 03:00:00)
 
 **Integration's title**
 Initial title will be `Switcher`, once changing the name, it will rename the device name as well
@@ -45,9 +46,13 @@ Upon startup or integration's option update, based on the value chosen, the comp
 
 In case `Default` option is chosen, flow will skip calling the service, after changing from any other option to `Default`, it will not take place automatically, only after restart
 
-###### Configuration validations
-Upon submitting the form of creating an integration or updating options,
+###### Configuration errors
+####### Setup new integration
+ 
+- Switcher API is already configured
+- Invalid Switcher API details
 
-Component will try to access the device, following errors can appear:
-- Switcher integration ({host}) already configured
-- Invalid device details - Cannot reach the device
+####### Edit options
+
+- Auto-off interval below minimum, must be between 01:00:00 to 03:00:00 minutes
+- Auto-off interval above maximum, must be between 01:00:00 to 03:00:00 minutes
