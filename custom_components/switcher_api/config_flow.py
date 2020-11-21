@@ -54,9 +54,7 @@ class DomainFlowHandler(config_entries.ConfigFlow):
                 errors = {"base": "already_configured"}
 
             except Exception as ex:
-                _LOGGER.error(
-                    f"Failed to configure Switcher device, Error: {ex}"
-                )
+                _LOGGER.error(f"Failed to configure Switcher device, Error: {ex}")
 
                 errors = {"base": "invalid_device_details"}
 

@@ -1,0 +1,8 @@
+{
+    "domain": "switcher_api",
+    "name": "Switcher API",
+    "documentation": "https://github.com/elad-bar/ha-switcher",
+    "codeowners": ["@elad-bar"],
+    "requirements": [ ],
+    "config_flow": true
+  }

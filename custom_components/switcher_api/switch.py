@@ -47,6 +47,11 @@ class Switch(SwitchEntity, BaseEntity):
         """Return the boolean response if the node is on."""
         return self.entity.state
 
+    @property
+    def icon(self):
+        """Return the boolean response if the node is on."""
+        return self.entity.icon
+
     async def async_turn_on(self, **kwargs):
         """Turn device on."""
         if self.entity_type == SWITCH_MAIN:
@@ -57,9 +62,11 @@ class Switch(SwitchEntity, BaseEntity):
 
             await self.api.enable_schedule(schedule_data)
 
+        await self.api.async_update()
+
         self.entity_manager.update()
 
-        await self.ha.dispatch_all()
+        self.ha.dispatch_all()
 
     async def async_turn_off(self, **kwargs):
         """Turn device off."""
@@ -71,9 +78,11 @@ class Switch(SwitchEntity, BaseEntity):
 
             await self.api.disable_schedule(schedule_data)
 
+        await self.api.async_update()
+
         self.entity_manager.update()
 
-        await self.ha.dispatch_all()
+        self.ha.dispatch_all()
 
     def turn_on(self, **kwargs) -> None:
         pass

@@ -3,7 +3,6 @@ Support for Switcher.
 For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/switcher/
 """
-from datetime import datetime
 import logging
 import sys
 from typing import Optional
@@ -33,7 +32,7 @@ class HomeAssistantManager:
     def __init__(self, hass: HomeAssistant):
         self._hass = hass
 
-        self._remove_async_track_time = None
+        self._remove_async_track_time_entities = None
 
         self._is_initialized = False
         self._is_updating = False
@@ -75,6 +74,8 @@ class HomeAssistantManager:
 
     async def async_init(self, entry: ConfigEntry):
         try:
+            _LOGGER.debug("Starting async_init")
+
             await self._config_manager.update(entry)
 
             self._api = SwitcherApi(self._hass, self._config_manager)
@@ -111,8 +112,44 @@ class HomeAssistantManager:
 
         await self.async_update_entry()
 
-    def _update_entities(self, now):
-        self._hass.async_create_task(self.async_update(now))
+    def async_update(self, now):
+        try:
+            self._hass.async_create_task(self._async_update())
+        except Exception as ex:
+            exc_type, exc_obj, tb = sys.exc_info()
+            line_number = tb.tb_lineno
+
+            _LOGGER.error(
+                f"Failed to create task for update API state @{now}, error: {ex}, line: {line_number}"
+            )
+
+    async def _async_update(self):
+        if not self._is_initialized:
+            _LOGGER.info("NOT INITIALIZED - Failed updating")
+            return
+
+        try:
+            if self._is_updating:
+                _LOGGER.debug("Skip updating")
+                return
+
+            _LOGGER.debug("Starting to update")
+
+            self._is_updating = True
+
+            await self._api.async_update()
+
+            self.device_manager.update()
+            self.entity_manager.update()
+
+            self.dispatch_all()
+        except Exception as ex:
+            exc_type, exc_obj, tb = sys.exc_info()
+            line_number = tb.tb_lineno
+
+            _LOGGER.error(f"Failed to async_update, Error: {ex}, Line: {line_number}")
+
+        self._is_updating = False
 
     async def async_update_entry(self, entry: ConfigEntry = None):
         update_config_manager = entry is not None
@@ -120,8 +157,10 @@ class HomeAssistantManager:
         if not update_config_manager:
             entry = self._config_manager.config_entry
 
-            self._remove_async_track_time = async_track_time_interval(
-                self._hass, self._update_entities, SCAN_INTERVAL
+            await self._api.initialize()
+
+            self._remove_async_track_time_entities = async_track_time_interval(
+                self._hass, self.async_update, UPDATE_INTERVAL
             )
 
         if not self._is_initialized:
@@ -135,16 +174,14 @@ class HomeAssistantManager:
         if update_config_manager:
             await self._config_manager.update(entry)
 
-        await self._api.initialize()
-
-        await self.async_update(datetime.now())
+        await self._async_update()
 
     async def async_remove(self, entry: ConfigEntry):
         _LOGGER.info(f"Removing current integration - {entry.title}")
 
-        if self._remove_async_track_time is not None:
-            self._remove_async_track_time()
-            self._remove_async_track_time = None
+        if self._remove_async_track_time_entities is not None:
+            self._remove_async_track_time_entities()
+            self._remove_async_track_time_entities = None
 
         unload = self._hass.config_entries.async_forward_entry_unload
 
@@ -154,34 +191,6 @@ class HomeAssistantManager:
         await self._device_manager.async_remove()
 
         _LOGGER.info(f"Current integration ({entry.title}) removed")
-
-    async def async_update(self, event_time):
-        if not self._is_initialized:
-            _LOGGER.info(f"NOT INITIALIZED - Failed updating @{event_time}")
-            return
-
-        try:
-            if self._is_updating:
-                _LOGGER.debug(f"Skip updating @{event_time}")
-                return
-
-            _LOGGER.debug(f"Updating @{event_time}")
-
-            self._is_updating = True
-
-            await self._api.async_update()
-
-            self.device_manager.update()
-            self.entity_manager.update()
-
-            await self.dispatch_all()
-        except Exception as ex:
-            exc_type, exc_obj, tb = sys.exc_info()
-            line_number = tb.tb_lineno
-
-            _LOGGER.error(f"Failed to async_update, Error: {ex}, Line: {line_number}")
-
-        self._is_updating = False
 
     async def delete_entity(self, domain, name):
         try:
@@ -206,7 +215,7 @@ class HomeAssistantManager:
 
             _LOGGER.error(f"Failed to delete_entity, Error: {ex}, Line: {line_number}")
 
-    async def dispatch_all(self):
+    def dispatch_all(self):
         if not self._is_initialized:
             _LOGGER.info("NOT INITIALIZED - Failed discovering components")
             return

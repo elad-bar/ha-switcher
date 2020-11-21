@@ -2,23 +2,24 @@
   "config": {
     "step": {
       "user": {
-        "title": "Set up Switcher",
-        "description": "Set up Switcher device's details",
+        "title": "Set up Switcher API",
+        "description": "Set up Switcher API details",
         "data": {
           "host": "Host",
-          "device-id": "Device ID"
+          "port": "Port",
+          "ssl": "Is SSL?"
         }
       }
     },
     "error": {
-      "already_configured": "Device is already configured",
-      "invalid_device_details": "Invalid device details"
+      "already_configured": "Switcher API is already configured",
+      "invalid_device_details": "Invalid Switcher API details"
     }
   },
   "options": {
       "step": {
           "switcher_additional_settings": {
-              "title": "Options for Switcher.",
+              "title": "Options for Switcher API",
               "description": "Set up details.",
               "data": {
                   "log_level": "Log level"

@@ -2,7 +2,7 @@ import logging
 import sys
 from typing import Dict, List, Optional
 
-from aioswitcher.consts import STATE_OFF, STATE_ON
+from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_registry import EntityRegistry
 
@@ -121,15 +121,21 @@ class EntityManager:
             )
 
     def create_components(self):
-        state = self.api.state
-        schedules = self.api.schedules
+        try:
+            state = self.api.state
+            schedules = self.api.schedules
 
-        self.generate_power_consumption_sensor(state)
-        self.generate_electric_current_sensor(state)
-        self.generate_main_switch(state)
+            self.generate_power_consumption_sensor(state)
+            self.generate_electric_current_sensor(state)
+            self.generate_main_switch(state)
 
-        for schedule in schedules:
-            self.generate_schedule_switch(schedule)
+            if schedules.get(KEY_FOUND_SCHEDULES, False):
+                all_schedules = schedules.get(KEY_SCHEDULES, [])
+
+                for schedule in all_schedules:
+                    self.generate_schedule_switch(schedule)
+        except Exception as ex:
+            self.log_exception(ex, "Failed to create_components")
 
     def update(self):
         self.hass.async_create_task(self._async_update())
@@ -245,7 +251,7 @@ class EntityManager:
             entity.attributes = attributes
             entity.icon = DEFAULT_ICON
             entity.device_name = device_name
-            entity.device_class = ""
+            entity.device_class = "power"
         except Exception as ex:
             self.log_exception(ex, "Failed to get power consumption sensor")
 
@@ -264,7 +270,7 @@ class EntityManager:
         entity = None
 
         try:
-            entity_name = f"{self.integration_title} Power Consumption"
+            entity_name = f"{self.integration_title} Electric Current"
 
             device_name = self.device_manager.get_device_name()
 
@@ -279,9 +285,8 @@ class EntityManager:
             entity.name = entity_name
             entity.state = state
             entity.attributes = attributes
-            entity.icon = DEFAULT_ICON
             entity.device_name = device_name
-            entity.device_class = ""
+            entity.device_class = "current"
         except Exception as ex:
             self.log_exception(ex, "Failed to get electric current sensor")
 
@@ -315,8 +320,9 @@ class EntityManager:
             entity.name = entity_name
             entity.state = state
             entity.attributes = attributes
-            entity.icon = DEFAULT_ICON
+            entity.icon = "mdi:water-boiler-off" if state else "mdi:water-boiler"
             entity.device_name = device_name
+            entity.type = SWITCH_MAIN
         except Exception as ex:
             self.log_exception(ex, "Failed to get main switch")
 
@@ -370,8 +376,9 @@ class EntityManager:
             entity.name = entity_name
             entity.state = state
             entity.attributes = attributes
-            entity.icon = DEFAULT_ICON
+            entity.icon = "mdi:camera-timer"
             entity.device_name = device_name
+            entity.type = SWITCH_SCHEDULE
         except Exception as ex:
             self.log_exception(ex, "Failed to get main switch")
 

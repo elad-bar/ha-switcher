@@ -2,7 +2,7 @@
 Support for Sensors.
 """
 import logging
-from typing import Union
+from typing import Optional, Union
 
 from homeassistant.core import HomeAssistant
 
@@ -44,6 +44,16 @@ class Sensor(BaseEntity):
     def state(self) -> Union[None, str, int, float]:
         """Return the state of the sensor."""
         return self.entity.state
+
+    @property
+    def device_class(self) -> Optional[str]:
+        """Return the type of the node."""
+        return self.entity.device_class
+
+    @property
+    def unit_of_measurement(self) -> Optional[str]:
+        """Return the type of the node."""
+        return "w" if self.entity.device_class == "power" else "A"
 
     async def async_added_to_hass_local(self):
         _LOGGER.info(f"Added new {self.name}")

@@ -2,7 +2,7 @@
 
 ## Description
 
-Integration with Switcher V2/V3. 
+Integration with Switcher API. 
 Creates the following components:
 
 * Sensors - Power Consumption and Electric Current.
@@ -14,8 +14,7 @@ Creates the following components:
 
 #### Requirements
 - Switcher device set up
-- Device ID according to the following [manual](https://github.com/NightRang3r/Switcher-V2-Python) by [@NightRang3r](https://github.com/NightRang3r)
-- Integration is based on [aioswitcher](https://github.com/TomerFi/aioswitcher) by [@TomerFi](https://github.com/TomerFi)
+- Switcher integration is based on [switcher_webapi](https://github.com/TomerFi/switcher_webapi) by [@TomerFi](https://github.com/TomerFi), it requires to run the docker before configuring this intergation
 
 #### Installations via HACS
 Add custom repository `https://github.com/elad-bar/ha-switcher
@@ -27,8 +26,9 @@ Look for "Switcher" and install
 ###### Basic configuration (Configuration -> Integrations -> Add Switcher)
 Fields name | Type | Required | Default | Description
 --- | --- | --- | --- | --- |
-Host | Texbox | + | None | Hostname or IP address of the Switcher device
-Device ID | Textbox | + | 0 | According to the manual above
+Host | Texbox | + | None | Hostname or IP address of the Switcher API
+Post | Textbox | + | 8000 | Port of the Switcher API
+SSL | Checkbox | + | False | Whether the Switcher API is using SSL (HTTPS) or not 
 
 ###### Integration options (Configuration -> Integrations -> Switcher Integration -> Options)  
 Fields name | Type | Required | Default | Description
