@@ -324,7 +324,7 @@ class EntityManager:
             entity.name = entity_name
             entity.state = state
             entity.attributes = attributes
-            entity.icon = "mdi:water-boiler-off" if state else "mdi:water-boiler"
+            entity.icon = "mdi:water-boiler" if state else "mdi:water-boiler-off"
             entity.device_name = device_name
             entity.type = SWITCH_MAIN
         except Exception as ex:
