@@ -30,32 +30,19 @@ DEFAULT_NAME = "Switcher API"
 
 DEFAULT_PORT = 8000
 DEFAULT_IS_SSL = False
-DEFAULT_AUTO_OFF = "03:00:00"
 
 CONF_AUTO_OFF = "auto-off"
 
 DOMAIN_LOGGER = "logger"
 SERVICE_SET_LEVEL = "set_level"
 
-NOTIFICATION_ID = f"{DOMAIN}_notification"
-NOTIFICATION_TITLE = f"{DEFAULT_NAME} Setup"
-
 DEFAULT_ICON = "mdi:alarm-light"
 
 ATTR_FRIENDLY_NAME = "friendly_name"
 
-SCAN_INTERVAL = timedelta(seconds=10)
+STATE_INTERVAL = timedelta(seconds=10)
+SCHEDULE_INTERVAL = timedelta(minutes=1)
 UPDATE_INTERVAL = timedelta(seconds=10)
-
-DEFAULT_FORCE_UPDATE = False
-
-CONFIG_OPTIONS = "options"
-CONFIG_CONDITIONS = "conditions"
-CONFIG_ITEMS = "items"
-
-DISCOVERY = f"{DOMAIN}_discovery"
-DISCOVERY_SENSOR = f"{DISCOVERY}_{DOMAIN_SENSOR}"
-DISCOVERY_SWITCH = f"{DISCOVERY}_{DOMAIN_SWITCH}"
 
 UPDATE_SIGNAL_SENSOR = f"{DOMAIN}_{DOMAIN_SENSOR}_UPDATE_SIGNAL"
 UPDATE_SIGNAL_SWITCH = f"{DOMAIN}_{DOMAIN_SWITCH}_UPDATE_SIGNAL"
@@ -72,8 +59,6 @@ ENTITY_STATE = "state"
 ENTITY_ATTRIBUTES = "attributes"
 ENTITY_ICON = "icon"
 ENTITY_UNIQUE_ID = "unique-id"
-ENTITY_EVENT = "event-type"
-ENTITY_TOPIC = "topic"
 ENTITY_DEVICE_CLASS = "device-class"
 ENTITY_DEVICE_NAME = "device-name"
 ENTITY_TYPE = "entity-type"
@@ -82,15 +67,9 @@ ENTITY_STATUS = "entity-status"
 ENTITY_STATUS_EMPTY = None
 ENTITY_STATUS_READY = f"{ENTITY_STATUS}-ready"
 ENTITY_STATUS_CREATED = f"{ENTITY_STATUS}-created"
-ENTITY_STATUS_MODIFIED = f"{ENTITY_STATUS}-modified"
-ENTITY_STATUS_IGNORE = f"{ENTITY_STATUS}-ignore"
-ENTITY_STATUS_CANCELLED = f"{ENTITY_STATUS}-cancelled"
 
 SWITCH_MAIN = "main-switch"
 SWITCH_SCHEDULE = "schedule-switch"
-
-DOMAIN_LOAD = "load"
-DOMAIN_UNLOAD = "unload"
 
 LOG_LEVEL_DEFAULT = "Default"
 LOG_LEVEL_DEBUG = "Debug"
@@ -107,14 +86,9 @@ LOG_LEVELS = [
 ]
 
 KEY_DAYS = "days"
-KEY_DURATION = "duration"
-KEY_ELECTRIC_CURRENT = "electric_current"
 KEY_ENABLED = "enabled"
 KEY_END_TIME = "end_time"
 KEY_FOUND_SCHEDULES = "found_schedules"
-KEY_MESSAGE = "message"
-KEY_NEXT_RUN = "next_run"
-KEY_POWER_CONSUMPTION = "power_consumption"
 KEY_RECURRING = "recurring"
 KEY_SCHEDULES = "schedules"
 KEY_SCHEDULE_DATA = "schedule_data"
@@ -122,8 +96,6 @@ KEY_SCHEDULE_ID = "schedule_id"
 KEY_STATE = "state"
 KEY_START_TIME = "start_time"
 KEY_SUCCESSFUL = "successful"
-KEY_TIME_LEFT = "time_left"
-KEY_TIME_ON = "time_on"
 KEY_AUTO_OFF = "auto_off"
 
 PARAM_DAYS = "days"

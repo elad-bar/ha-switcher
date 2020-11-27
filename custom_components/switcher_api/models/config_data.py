@@ -25,7 +25,7 @@ class ConfigData:
             CONF_HOST: self.host,
             CONF_PORT: self.port,
             CONF_SSL: self.is_ssl,
-            CONF_AUTO_OFF: self.auto_off
+            CONF_AUTO_OFF: self.auto_off,
         }
 
         to_string = f"{obj}"

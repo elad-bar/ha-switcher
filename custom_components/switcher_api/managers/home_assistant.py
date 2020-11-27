@@ -5,7 +5,6 @@ https://home-assistant.io/components/switcher/
 """
 import logging
 import sys
-from datetime import datetime
 from typing import Optional
 
 from cryptography.fernet import InvalidToken
@@ -34,6 +33,8 @@ class HomeAssistantManager:
         self._hass = hass
 
         self._remove_async_track_time_entities = None
+        self._remove_async_track_time_schedule = None
+        self._remove_async_track_time_state = None
 
         self._is_initialized = False
         self._is_updating = False
@@ -117,6 +118,28 @@ class HomeAssistantManager:
 
         await self.async_update_entry()
 
+    def async_update_state(self, now):
+        try:
+            self._hass.async_create_task(self.api.async_update_state())
+        except Exception as ex:
+            exc_type, exc_obj, tb = sys.exc_info()
+            line_number = tb.tb_lineno
+
+            _LOGGER.error(
+                f"Failed to create task for update API state @{now}, error: {ex}, line: {line_number}"
+            )
+
+    def async_update_schedule(self, now):
+        try:
+            self._hass.async_create_task(self.api.async_update_schedule())
+        except Exception as ex:
+            exc_type, exc_obj, tb = sys.exc_info()
+            line_number = tb.tb_lineno
+
+            _LOGGER.error(
+                f"Failed to create task for update API schedule @{now}, error: {ex}, line: {line_number}"
+            )
+
     def async_update(self, now):
         try:
             self._hass.async_create_task(self._async_update())
@@ -125,7 +148,7 @@ class HomeAssistantManager:
             line_number = tb.tb_lineno
 
             _LOGGER.error(
-                f"Failed to create task for update API state @{now}, error: {ex}, line: {line_number}"
+                f"Failed to create task for update entities @{now}, error: {ex}, line: {line_number}"
             )
 
     async def _async_update(self):
@@ -150,8 +173,6 @@ class HomeAssistantManager:
                 if renamed:
                     self._integration_name = title
 
-            await self._api.async_update()
-
             self.device_manager.update()
             self.entity_manager.update()
 
@@ -171,6 +192,14 @@ class HomeAssistantManager:
             entry = self._config_manager.config_entry
 
             await self._api.initialize()
+
+            self._remove_async_track_time_schedule = async_track_time_interval(
+                self._hass, self.async_update_schedule, SCHEDULE_INTERVAL
+            )
+
+            self._remove_async_track_time_state = async_track_time_interval(
+                self._hass, self.async_update_schedule, STATE_INTERVAL
+            )
 
             self._remove_async_track_time_entities = async_track_time_interval(
                 self._hass, self.async_update, UPDATE_INTERVAL
@@ -202,6 +231,14 @@ class HomeAssistantManager:
         if self._remove_async_track_time_entities is not None:
             self._remove_async_track_time_entities()
             self._remove_async_track_time_entities = None
+
+        if self._remove_async_track_time_state is not None:
+            self._remove_async_track_time_state()
+            self._remove_async_track_time_state = None
+
+        if self._remove_async_track_time_schedule is not None:
+            self._remove_async_track_time_schedule()
+            self._remove_async_track_time_schedule = None
 
         unload = self._hass.config_entries.async_forward_entry_unload
 

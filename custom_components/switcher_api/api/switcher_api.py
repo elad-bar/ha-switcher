@@ -70,13 +70,14 @@ class SwitcherApi:
                 f"Failed to initialize Switcher API ({self._base_url}), error: {ex}, line: {line_number}"
             )
 
-    async def async_update(self):
+    async def async_update_state(self):
         state = await self.get_state()
 
         if state:
             _LOGGER.debug(f"State: {state}")
             self.state = state
 
+    async def async_update_schedule(self):
         schedules = await self.get_schedules()
 
         if schedules:

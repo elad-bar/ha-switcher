@@ -1,5 +1,5 @@
-import logging
 from datetime import datetime
+import logging
 from typing import Any, Dict, Optional
 
 from cryptography.fernet import InvalidToken
@@ -12,7 +12,7 @@ from .. import get_ha
 from ..api.switcher_api import SwitcherApi
 from ..helpers.const import *
 from ..managers.configuration_manager import ConfigManager
-from ..models import LoginError, AutoOffError
+from ..models import AutoOffError, LoginError
 from ..models.config_data import ConfigData
 
 _LOGGER = logging.getLogger(__name__)
@@ -131,7 +131,9 @@ class ConfigFlowManager:
 
         fields = {
             vol.Optional(CONF_AUTO_OFF, default=config_data.auto_off): str,
-            vol.Optional(CONF_LOG_LEVEL, default=config_data.log_level): vol.In(LOG_LEVELS)
+            vol.Optional(CONF_LOG_LEVEL, default=config_data.log_level): vol.In(
+                LOG_LEVELS
+            ),
         }
 
         data_schema = vol.Schema(fields)

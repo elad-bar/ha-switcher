@@ -108,7 +108,9 @@ class DomainOptionsFlowHandler(config_entries.OptionsFlow):
                 )
 
             except AutoOffError as aoe:
-                _LOGGER.warning(f"Invalid value for auto-off {aoe.time}, Error: {aoe.error_code}")
+                _LOGGER.warning(
+                    f"Invalid value for auto-off {aoe.time}, Error: {aoe.error_code}"
+                )
 
                 errors = {"base": aoe.error_code}
 

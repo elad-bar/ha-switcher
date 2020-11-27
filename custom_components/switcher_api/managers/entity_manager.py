@@ -249,7 +249,6 @@ class EntityManager:
             entity.name = entity_name
             entity.state = state
             entity.attributes = attributes
-            entity.icon = DEFAULT_ICON
             entity.device_name = device_name
             entity.device_class = "power"
         except Exception as ex:
