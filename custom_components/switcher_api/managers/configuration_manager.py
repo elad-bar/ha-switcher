@@ -1,7 +1,7 @@
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SSL
+from homeassistant.const import CONF_DEVICE_ID, CONF_IP_ADDRESS
 
 from ..helpers.const import *
 from ..models.config_data import ConfigData
@@ -20,9 +20,8 @@ class ConfigManager:
         result: ConfigData = await self.get_basic_data(data)
 
         result.log_level = options.get(CONF_LOG_LEVEL, LOG_LEVEL_DEFAULT)
-        result.port = data.get(CONF_PORT, DEFAULT_PORT)
-        result.is_ssl = data.get(CONF_SSL, DEFAULT_IS_SSL)
-        result.host = data.get(CONF_HOST)
+        result.device_id = data.get(CONF_DEVICE_ID)
+        result.ip_address = data.get(CONF_IP_ADDRESS)
         result.auto_off = options.get(CONF_AUTO_OFF)
 
         self.config_entry = config_entry
@@ -33,8 +32,7 @@ class ConfigManager:
         result = ConfigData()
 
         if data is not None:
-            result.host = data.get(CONF_HOST)
-            result.port = data.get(CONF_PORT, DEFAULT_PORT)
-            result.is_ssl = data.get(CONF_SSL, DEFAULT_IS_SSL)
+            result.ip_address = data.get(CONF_IP_ADDRESS)
+            result.device_id = data.get(CONF_DEVICE_ID)
 
         return result

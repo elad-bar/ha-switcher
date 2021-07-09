@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.1.0
+
+#### BREAKING CHANGES:
+- Work directly with AIO Switcher, not using switcher_webapi
+- If component installed, please remove it and reinstall
+- Uses the IP and Device ID instead of API details
+
 ## 2020-11-27
 
 - Split entities, API State & API Schedules updates to 3 intervals

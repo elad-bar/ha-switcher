@@ -1,15 +1,15 @@
 """Request handlers for the Switcher WebAPI."""
 from datetime import time
-import json
 import logging
 import sys
 from typing import List, Optional
 
-import aiohttp
+from aioswitcher.api import Command, SwitcherApi as SwitcherClient
+from aioswitcher.schedule import Days
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
+from . import _serialize_object
 from ..helpers.const import *
 from ..managers.configuration_manager import ConfigManager
 
@@ -25,50 +25,18 @@ class SwitcherApi:
         self._config_manager = config_manager
         self.schedules = {}
         self.state = {}
-        self._session = None
-        self._base_url = None
 
     @property
     def config_data(self):
         return self._config_manager.data
 
     @property
-    def ssl_context(self):
-        return False if self.config_data.is_ssl else None
+    def ip_address(self):
+        return self.config_data.ip_address
 
-    @staticmethod
-    def _is_success(response):
-        is_success = response and response.get(KEY_SUCCESSFUL, False)
-
-        return is_success
-
-    async def initialize(self):
-        _LOGGER.info("Initializing Switcher API")
-
-        try:
-            config_data = self.config_data
-
-            self._base_url = (
-                f"{config_data.protocol}://{config_data.host}:{config_data.port}"
-            )
-
-            if self._hass is None:
-                if self._session is not None:
-                    await self._session.close()
-
-                self._session = aiohttp.client.ClientSession()
-            else:
-                self._session = async_create_clientsession(hass=self._hass)
-
-            _LOGGER.debug(f"Initialized Switch API with URL: {self._base_url}")
-
-        except Exception as ex:
-            exc_type, exc_obj, tb = sys.exc_info()
-            line_number = tb.tb_lineno
-
-            _LOGGER.error(
-                f"Failed to initialize Switcher API ({self._base_url}), error: {ex}, line: {line_number}"
-            )
+    @property
+    def device_id(self):
+        return self.config_data.device_id
 
     async def async_update_state(self):
         state = await self.get_state()
@@ -84,173 +52,22 @@ class SwitcherApi:
             _LOGGER.debug(f"Schedules: {schedules}")
             self.schedules = schedules
 
-    async def _async_post(self, endpoint, data: Optional[dict] = None):
-        result = None
-
-        try:
-            _LOGGER.debug(f"Starting to POST {endpoint}, Data: {data}")
-
-            url = f"{self._base_url}{endpoint}"
-
-            async with self._session.post(
-                url, data=json.dumps(data), ssl=self.ssl_context
-            ) as response:
-                _LOGGER.debug(f"Status of POST {endpoint}: {response.status}")
-
-                response.raise_for_status()
-
-                result = await response.json()
-
-                if not self._is_success(result):
-                    _LOGGER.warning(f"{endpoint} return failed result: {result}")
-
-                    result = None
-
-        except Exception as ex:
-            exc_type, exc_obj, tb = sys.exc_info()
-            line_number = tb.tb_lineno
-
-            _LOGGER.error(
-                f"Failed to POST {endpoint}, Error: {ex}, Line: {line_number}"
-            )
-
-        return result
-
-    async def _async_get(self, endpoint):
-        result = None
-
-        try:
-            _LOGGER.debug(f"Starting to GET {endpoint}")
-
-            url = f"{self._base_url}{endpoint}"
-
-            async with self._session.get(url, ssl=self.ssl_context) as response:
-                _LOGGER.debug(f"Status of GET {endpoint}: {response.status}")
-
-                response.raise_for_status()
-
-                result = await response.json()
-
-                if not self._is_success(result):
-                    _LOGGER.warning(f"{endpoint} return failed result: {result}")
-
-                    result = None
-
-        except Exception as ex:
-            exc_type, exc_obj, tb = sys.exc_info()
-            line_number = tb.tb_lineno
-
-            _LOGGER.error(f"Failed to GET {endpoint}, Error: {ex}, Line: {line_number}")
-
-        return result
-
-    async def _async_delete(self, endpoint):
-        result = None
-
-        try:
-            _LOGGER.debug(f"Starting to DELETE {endpoint}")
-
-            url = f"{self._base_url}{endpoint}"
-
-            async with self._session.delete(url, ssl=self.ssl_context) as response:
-                _LOGGER.debug(f"Status of DELETE {endpoint}: {response.status}")
-
-                response.raise_for_status()
-
-                result = await response.json()
-
-                if not self._is_success(result):
-                    _LOGGER.warning(f"{endpoint} return failed result: {result}")
-
-                    result = None
-
-        except Exception as ex:
-            exc_type, exc_obj, tb = sys.exc_info()
-            line_number = tb.tb_lineno
-
-            _LOGGER.error(
-                f"Failed to DELETE {endpoint}, Error: {ex}, Line: {line_number}"
-            )
-
-        return result
-
-    async def _async_patch(self, endpoint, data: Optional[dict] = None):
-        result = None
-
-        try:
-            _LOGGER.debug(f"Starting to PATCH {endpoint}, Data: {data}")
-
-            url = f"{self._base_url}{endpoint}"
-
-            async with self._session.patch(
-                url, data=json.dumps(data), ssl=self.ssl_context
-            ) as response:
-                _LOGGER.debug(f"Status of PATCH {endpoint}: {response.status}")
-
-                response.raise_for_status()
-
-                result = await response.json()
-
-                if not self._is_success(result):
-                    _LOGGER.warning(f"{endpoint} return failed result: {result}")
-
-                    result = None
-
-        except Exception as ex:
-            exc_type, exc_obj, tb = sys.exc_info()
-            line_number = tb.tb_lineno
-
-            _LOGGER.error(
-                f"Failed to PATCH {endpoint}, Error: {ex}, Line: {line_number}"
-            )
-
-        return result
-
-    async def _async_put(self, endpoint, data: Optional[dict] = None):
-        result = None
-
-        try:
-            _LOGGER.debug(f"Starting to PUT {endpoint}, Data: {data}")
-
-            url = f"{self._base_url}{endpoint}"
-
-            async with self._session.put(
-                url, data=json.dumps(data), ssl=self.ssl_context
-            ) as response:
-                _LOGGER.debug(f"Status of PUT {endpoint}: {response.status}")
-
-                response.raise_for_status()
-
-                result = await response.json()
-
-                if not self._is_success(result):
-                    _LOGGER.warning(f"{endpoint} return failed result: {result}")
-
-                    result = None
-
-        except Exception as ex:
-            exc_type, exc_obj, tb = sys.exc_info()
-            line_number = tb.tb_lineno
-
-            _LOGGER.error(f"Failed to PUT {endpoint}, Error: {ex}, Line: {line_number}")
-
-        return result
-
-    async def create_schedule(self, days: List[str], start_time: time, stop_time: time):
+    async def create_schedule(self, days: List[str], start_time: str, stop_time: str):
         is_success = False
 
         try:
-            data = {
-                PARAM_DAYS: days,
-                PARAM_START_HOURS: start_time.hour,
-                PARAM_START_MINUTES: start_time.minute,
-                PARAM_STOP_HOURS: stop_time.hour,
-                PARAM_STOP_MINUTES: stop_time.minute,
-            }
+            weekdays = dict(map(lambda d: (d.value, d), Days))
+            selected_days = (
+                {weekdays[d] for d in days[KEY_DAYS]} if days else set()
+            )
 
-            response = await self._async_put(ENDPOINT_CREATE_SCHEDULE, data)
+            async with SwitcherClient(self.ip_address, self.device_id) as api:
+                state = await api.create_schedule(start_time, stop_time, selected_days)
+                _LOGGER.debug(f"Create Schedule request returned: {state}")
 
-            is_success = response is not None
+                response = _serialize_object(state)
+
+                is_success = response is not None
 
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
@@ -265,11 +82,13 @@ class SwitcherApi:
         is_success = False
 
         try:
-            endpoint = f"{ENDPOINT_DISABLE_SCHEDULE}?{PARAM_SCHEDULE_ID}={schedule_id}"
+            async with SwitcherClient(self.ip_address, self.device_id) as api:
+                state = await api.delete_schedule(schedule_id)
+                _LOGGER.debug(f"Delete Schedule request returned: {state}")
 
-            response = await self._async_delete(endpoint)
+                response = _serialize_object(state)
 
-            is_success = response is not None
+                is_success = response is not None
 
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
@@ -279,54 +98,17 @@ class SwitcherApi:
 
         return is_success
 
-    async def disable_schedule(self, schedule_data: str):
-        """Use for handling requests to /switcher_api/disable_schedule."""
-        is_success = False
-
-        try:
-            data = {
-                PARAM_SCHEDULE_DATA: schedule_data,
-            }
-
-            response = await self._async_patch(ENDPOINT_DISABLE_SCHEDULE, data)
-
-            is_success = response is not None
-
-        except Exception as ex:
-            exc_type, exc_obj, tb = sys.exc_info()
-            line = tb.tb_lineno
-
-            _LOGGER.error(f"Failed disabling schedule, Error: {ex}, Line: {line}")
-
-        return is_success
-
-    async def enable_schedule(self, schedule_data: str):
-        """Use for handling requests to /switcher_api/enable_schedule."""
-        is_success = False
-
-        try:
-            data = {
-                PARAM_SCHEDULE_DATA: schedule_data,
-            }
-
-            response = await self._async_patch(ENDPOINT_ENABLE_SCHEDULE, data)
-
-            is_success = response is not None
-
-        except Exception as ex:
-            exc_type, exc_obj, tb = sys.exc_info()
-            line = tb.tb_lineno
-
-            _LOGGER.error(f"Failed enabling schedule, Error: {ex}, Line: {line}")
-
-        return is_success
-
     async def get_schedules(self):
         """Use for handling requests to /switcher_api/get_schedules."""
         response = None
 
         try:
-            response = await self._async_get(ENDPOINT_GET_SCHEDULES)
+            async with SwitcherClient(self.ip_address, self.device_id) as api:
+                state = await api.get_schedules()
+                _LOGGER.debug(f"Get Schedules request returned: {state}")
+
+                response = _serialize_object(state)
+
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
             line = tb.tb_lineno
@@ -342,7 +124,12 @@ class SwitcherApi:
         response = None
 
         try:
-            response = await self._async_get(ENDPOINT_GET_STATE)
+            async with SwitcherClient(self.ip_address, self.device_id) as api:
+                state = await api.get_state()
+                _LOGGER.debug(f"Get State request returned: {state}")
+
+                response = _serialize_object(state)
+
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
             line = tb.tb_lineno
@@ -356,11 +143,14 @@ class SwitcherApi:
         is_success = False
 
         try:
-            data = {PARAM_HOURS: time_span.hour, PARAM_MINUTES: time_span.minute}
+            async with SwitcherClient(self.ip_address, self.device_id) as api:
+                auto_shutdown = timedelta(hours=time_span.hour, minutes=time_span.minute)
+                state = await api.set_auto_shutdown(auto_shutdown)
+                _LOGGER.debug(f"Set Automatic Shutdown request returned: {state}")
 
-            response = await self._async_post(ENDPOINT_SET_AUTO_SHUTDOWN, data)
+                response = _serialize_object(state)
 
-            is_success = response is not None
+                is_success = response is not None
 
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
@@ -372,16 +162,18 @@ class SwitcherApi:
 
         return is_success
 
-    async def set_device_name(self, new_name):
+    async def set_device_name(self, new_name: str):
         """Use for handling requests to /switcher_api/set_device_name."""
         is_success = False
 
         try:
-            data = {PARAM_NAME: new_name}
+            async with SwitcherClient(self.ip_address, self.device_id) as api:
+                state = await api.set_device_name(new_name)
+                _LOGGER.debug(f"Set Device Name request returned: {state}")
 
-            response = await self._async_post(ENDPOINT_SET_DEVICE_NAME, data)
+                response = _serialize_object(state)
 
-            is_success = response is not None
+                is_success = response is not None
 
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
@@ -395,9 +187,13 @@ class SwitcherApi:
         """Use for handling requests to /switcher_api/turn_off."""
         is_success = False
         try:
-            response = await self._async_post(ENDPOINT_TURN_OFF)
+            async with SwitcherClient(self.ip_address, self.device_id) as api:
+                state = await api.control_device(Command.OFF)
+                _LOGGER.debug(f"Turn Off request returned: {state}")
 
-            is_success = response is not None
+                response = _serialize_object(state)
+
+                is_success = response is not None
 
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
@@ -407,17 +203,17 @@ class SwitcherApi:
 
         return is_success
 
-    async def turn_on(self, minutes: Optional[str] = None):
+    async def turn_on(self, minutes: Optional[int] = 0):
         """Use for handling requests to /switcher_api/turn_on."""
         is_success = False
         try:
-            data = None
-            if minutes is not None:
-                data = {PARAM_MINUTES: minutes}
+            async with SwitcherClient(self.ip_address, self.device_id) as api:
+                state = await api.control_device(Command.ON, minutes)
+                _LOGGER.debug(f"Turn On request returned: {state}")
 
-            response = await self._async_post(ENDPOINT_TURN_ON, data)
+                response = _serialize_object(state)
 
-            is_success = response is not None
+                is_success = response is not None
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
             line = tb.tb_lineno

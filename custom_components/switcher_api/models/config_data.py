@@ -1,20 +1,18 @@
-from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SSL
+from homeassistant.const import CONF_DEVICE_ID, CONF_IP_ADDRESS
 
 from ..helpers.const import *
 
 
 class ConfigData:
     name: str
-    host: str
-    port: int
-    is_ssl: bool
+    ip_address: str
+    device_id: str
     log_level: str
 
     def __init__(self):
         self.name = DEFAULT_NAME
-        self.host = ""
-        self.port = DEFAULT_PORT
-        self.is_ssl = DEFAULT_IS_SSL
+        self.ip_address = ""
+        self.device_id = ""
         self.auto_off = None
 
         self.log_level = LOG_LEVEL_DEFAULT
@@ -22,18 +20,11 @@ class ConfigData:
     def __repr__(self):
         obj = {
             CONF_NAME: self.name,
-            CONF_HOST: self.host,
-            CONF_PORT: self.port,
-            CONF_SSL: self.is_ssl,
+            CONF_IP_ADDRESS: self.ip_address,
+            CONF_DEVICE_ID: self.device_id,
             CONF_AUTO_OFF: self.auto_off,
         }
 
         to_string = f"{obj}"
 
         return to_string
-
-    @property
-    def protocol(self):
-        protocol = PROTOCOLS[self.is_ssl]
-
-        return protocol

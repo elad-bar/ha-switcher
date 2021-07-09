@@ -191,14 +191,12 @@ class HomeAssistantManager:
         if not update_config_manager:
             entry = self._config_manager.config_entry
 
-            await self._api.initialize()
-
             self._remove_async_track_time_schedule = async_track_time_interval(
                 self._hass, self.async_update_schedule, SCHEDULE_INTERVAL
             )
 
             self._remove_async_track_time_state = async_track_time_interval(
-                self._hass, self.async_update_schedule, STATE_INTERVAL
+                self._hass, self.async_update_state, STATE_INTERVAL
             )
 
             self._remove_async_track_time_entities = async_track_time_interval(

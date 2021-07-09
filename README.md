@@ -2,19 +2,18 @@
 
 ## Description
 
-Integration with Switcher API. 
+Integration with Switcher using [aioswitcher](https://github.com/TomerFi/aioswitcher).
 Creates the following components:
 
 * Sensors - Power Consumption and Electric Current.
-* Switch - Main and per schedule
+* Switch - Main
 
 [Changelog](https://github.com/elad-bar/ha-switcher/blob/master/CHANGELOG.md)
 
 ## How to
 
 #### Requirements
-- Switcher device 
-- Switcher API docker [switcher_webapi](https://github.com/TomerFi/switcher_webapi) by [@TomerFi](https://github.com/TomerFi)
+- Switcher device
 
 #### Installations via HACS
 Add custom repository `https://github.com/elad-bar/ha-switcher`
@@ -26,11 +25,10 @@ Look for "Switcher API" and install
 ###### Basic configuration (Configuration -> Integrations -> Add Switcher)
 Fields name | Type | Required | Default | Description
 --- | --- | --- | --- | --- |
-Host | Textbox | + | None | Hostname or IP address of the Switcher API
-Post | Textbox | + | 8000 | Port of the Switcher API
-SSL | Checkbox | + | False | Whether the Switcher API is using SSL (HTTPS) or not 
+IP Address | Textbox | + | None | Hostname or IP address of the Switcher unit
+Device ID | Textbox | + | None | Device ID
 
-###### Integration options (Configuration -> Integrations -> Switcher Integration -> Options)  
+###### Integration options (Configuration -> Integrations -> Switcher Integration -> Options)
 Fields name | Type | Required | Default | Description
 --- | --- | --- | --- | --- |
 Log level | Drop-down | + | Default | Changes component's log level (more details below)
@@ -48,9 +46,9 @@ In case `Default` option is chosen, flow will skip calling the service, after ch
 
 ###### Configuration errors
 ####### Setup new integration
- 
-- Switcher API is already configured
-- Invalid Switcher API details
+
+- Switcher already configured
+- Invalid Switcher details
 
 ####### Edit options
 

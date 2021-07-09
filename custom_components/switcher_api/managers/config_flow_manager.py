@@ -6,7 +6,7 @@ from cryptography.fernet import InvalidToken
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_PORT, CONF_SSL
+from homeassistant.const import CONF_DEVICE_ID, CONF_IP_ADDRESS
 
 from .. import get_ha
 from ..api.switcher_api import SwitcherApi
@@ -106,9 +106,8 @@ class ConfigFlowManager:
             config_data = self.config_data
 
         fields = {
-            vol.Optional(CONF_HOST, default=config_data.host): str,
-            vol.Optional(CONF_PORT, default=config_data.port): int,
-            vol.Optional(CONF_SSL, default=config_data.is_ssl): bool,
+            vol.Required(CONF_IP_ADDRESS, default=config_data.ip_address): str,
+            vol.Required(CONF_DEVICE_ID, default=config_data.device_id): str
         }
 
         return fields
@@ -201,15 +200,14 @@ class ConfigFlowManager:
         config_data = self._config_manager.data
 
         api = SwitcherApi(self._hass, self._config_manager)
-        await api.initialize()
-
         state = await api.get_state()
 
-        if state is None or not state.get(KEY_SUCCESSFUL, False):
-            _LOGGER.warning(f"Failed to access Switcher ({config_data.host})")
+        if state is None:
+            _LOGGER.warning(f"Failed to access Switcher ({config_data.ip_address})")
             errors = {"base": "invalid_server_details"}
+
         else:
-            system_name = f"{DEFAULT_NAME} ({config_data.host})"
+            system_name = f"{DEFAULT_NAME} ({config_data.ip_address})"
 
             if system_name is not None:
                 self.title = system_name

@@ -3,7 +3,7 @@
     "name": "Switcher API",
     "documentation": "https://github.com/elad-bar/ha-switcher",
     "codeowners": ["@elad-bar"],
-    "requirements": [ ],
+    "requirements": [ "aioswitcher==2.0.3" ],
     "config_flow": true,
-    "version": "1.0.0"
+    "version": "1.1.0"
   }

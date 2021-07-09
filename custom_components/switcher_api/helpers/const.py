@@ -28,9 +28,6 @@ DATA_HA = f"{DATA}_HA"
 DATA_HA_ENTITIES = f"{DATA}_HA_Entities"
 DEFAULT_NAME = "Switcher API"
 
-DEFAULT_PORT = 8000
-DEFAULT_IS_SSL = False
-
 CONF_AUTO_OFF = "auto-off"
 
 DOMAIN_LOGGER = "logger"

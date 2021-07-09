@@ -2,7 +2,7 @@
 
 ## Description
 
-Integration with Switcher API. 
+Integration with Switcher API.
 Creates the following components:
 
 * Sensors - Power Consumption and Electric Current.
@@ -13,7 +13,7 @@ Creates the following components:
 ## How to
 
 #### Requirements
-- Switcher device 
+- Switcher device
 - Switcher API docker [switcher_webapi](https://github.com/TomerFi/switcher_webapi) by [@TomerFi](https://github.com/TomerFi)
 
 #### Installations via HACS
@@ -28,9 +28,9 @@ Fields name | Type | Required | Default | Description
 --- | --- | --- | --- | --- |
 Host | Textbox | + | None | Hostname or IP address of the Switcher API
 Post | Textbox | + | 8000 | Port of the Switcher API
-SSL | Checkbox | + | False | Whether the Switcher API is using SSL (HTTPS) or not 
+SSL | Checkbox | + | False | Whether the Switcher API is using SSL (HTTPS) or not
 
-###### Integration options (Configuration -> Integrations -> Switcher Integration -> Options)  
+###### Integration options (Configuration -> Integrations -> Switcher Integration -> Options)
 Fields name | Type | Required | Default | Description
 --- | --- | --- | --- | --- |
 Log level | Drop-down | + | Default | Changes component's log level (more details below)
@@ -48,7 +48,7 @@ In case `Default` option is chosen, flow will skip calling the service, after ch
 
 ###### Configuration errors
 ####### Setup new integration
- 
+
 - Switcher API is already configured
 - Invalid Switcher API details
 
