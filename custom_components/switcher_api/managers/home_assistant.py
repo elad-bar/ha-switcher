@@ -118,26 +118,15 @@ class HomeAssistantManager:
 
         await self.async_update_entry()
 
-    def async_update_state(self, now):
+    def async_update_api(self, now):
         try:
-            self._hass.async_create_task(self.api.async_update_state())
+            self._hass.async_create_task(self.api.async_update())
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
             line_number = tb.tb_lineno
 
             _LOGGER.error(
                 f"Failed to create task for update API state @{now}, error: {ex}, line: {line_number}"
-            )
-
-    def async_update_schedule(self, now):
-        try:
-            self._hass.async_create_task(self.api.async_update_schedule())
-        except Exception as ex:
-            exc_type, exc_obj, tb = sys.exc_info()
-            line_number = tb.tb_lineno
-
-            _LOGGER.error(
-                f"Failed to create task for update API schedule @{now}, error: {ex}, line: {line_number}"
             )
 
     def async_update(self, now):
@@ -191,12 +180,8 @@ class HomeAssistantManager:
         if not update_config_manager:
             entry = self._config_manager.config_entry
 
-            self._remove_async_track_time_schedule = async_track_time_interval(
-                self._hass, self.async_update_schedule, SCHEDULE_INTERVAL
-            )
-
             self._remove_async_track_time_state = async_track_time_interval(
-                self._hass, self.async_update_state, STATE_INTERVAL
+                self._hass, self.async_update_api, API_INTERVAL
             )
 
             self._remove_async_track_time_entities = async_track_time_interval(
@@ -214,8 +199,7 @@ class HomeAssistantManager:
         if update_config_manager:
             await self._config_manager.update(entry)
 
-            state = await self.api.get_state()
-            state_auto_off = state.get(KEY_AUTO_OFF)
+            state_auto_off = self.api.state.get(KEY_AUTO_OFF)
 
             current_auto_off = self.config_data.auto_off
             if current_auto_off is None:

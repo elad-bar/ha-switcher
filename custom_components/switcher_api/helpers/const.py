@@ -23,9 +23,6 @@ PROTOCOLS = {True: "https", False: "http"}
 
 DOMAIN = "switcher_api"
 DATA = f"data_{DOMAIN}"
-DATA_API = f"{DATA}_API"
-DATA_HA = f"{DATA}_HA"
-DATA_HA_ENTITIES = f"{DATA}_HA_Entities"
 DEFAULT_NAME = "Switcher API"
 
 CONF_AUTO_OFF = "auto-off"
@@ -33,12 +30,9 @@ CONF_AUTO_OFF = "auto-off"
 DOMAIN_LOGGER = "logger"
 SERVICE_SET_LEVEL = "set_level"
 
-DEFAULT_ICON = "mdi:alarm-light"
-
 ATTR_FRIENDLY_NAME = "friendly_name"
 
-STATE_INTERVAL = timedelta(seconds=10)
-SCHEDULE_INTERVAL = timedelta(minutes=1)
+API_INTERVAL = timedelta(seconds=10)
 UPDATE_INTERVAL = timedelta(seconds=10)
 
 UPDATE_SIGNAL_SENSOR = f"{DOMAIN}_{DOMAIN_SENSOR}_UPDATE_SIGNAL"
@@ -88,31 +82,8 @@ KEY_END_TIME = "end_time"
 KEY_FOUND_SCHEDULES = "found_schedules"
 KEY_RECURRING = "recurring"
 KEY_SCHEDULES = "schedules"
-KEY_SCHEDULE_DATA = "schedule_data"
 KEY_SCHEDULE_ID = "schedule_id"
 KEY_STATE = "state"
 KEY_START_TIME = "start_time"
 KEY_SUCCESSFUL = "successful"
 KEY_AUTO_OFF = "auto_off"
-
-PARAM_DAYS = "days"
-PARAM_HOURS = "hours"
-PARAM_MINUTES = "minutes"
-PARAM_NAME = "name"
-PARAM_SCHEDULE_DATA = "schedule_data"
-PARAM_SCHEDULE_ID = "schedule_id"
-PARAM_START_HOURS = "start_hours"
-PARAM_START_MINUTES = "start_minutes"
-PARAM_STOP_HOURS = "stop_hours"
-PARAM_STOP_MINUTES = "stop_minutes"
-
-ENDPOINT_GET_STATE = "/switcher/get_state"
-ENDPOINT_TURN_ON = "/switcher/turn_on"
-ENDPOINT_TURN_OFF = "/switcher/turn_off"
-ENDPOINT_SET_AUTO_SHUTDOWN = "/switcher/set_auto_shutdown"
-ENDPOINT_SET_DEVICE_NAME = "/switcher/set_device_name"
-ENDPOINT_GET_SCHEDULES = "/switcher/get_schedules"
-ENDPOINT_ENABLE_SCHEDULE = "/switcher/enable_schedule"
-ENDPOINT_DISABLE_SCHEDULE = "/switcher/disable_schedule"
-ENDPOINT_DELETE_SCHEDULE = "/switcher/delete_schedule"
-ENDPOINT_CREATE_SCHEDULE = "/switcher/create_schedule"

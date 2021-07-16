@@ -1,5 +1,5 @@
 """Request handlers for the Switcher WebAPI."""
-from datetime import time
+from datetime import datetime, time
 import logging
 import sys
 from typing import List, Optional
@@ -19,12 +19,16 @@ _LOGGER = logging.getLogger(__name__)
 class SwitcherApi:
     state: dict
     schedules: dict
+    last_update: datetime
+    is_updating: bool
 
     def __init__(self, hass: HomeAssistant, config_manager: ConfigManager):
         self._hass = hass
         self._config_manager = config_manager
         self.schedules = {}
         self.state = {}
+        self.last_update = datetime.utcnow()
+        self.is_updating = False
 
     @property
     def config_data(self):
@@ -42,19 +46,30 @@ class SwitcherApi:
     def device_details(self):
         return f"IP: {self.ip_address}, Device: {self.device_id}"
 
-    async def async_update_state(self):
-        state = await self.get_state()
+    async def async_update(self):
+        if not self.is_updating:
+            self.is_updating = True
 
-        if state:
-            _LOGGER.debug(f"State: {state}")
-            self.state = state
+            now = datetime.utcnow()
+            time_since_last_updated = now - self.last_update
+            seconds_since_last_updated = time_since_last_updated.total_seconds()
+            should_update_schedules = seconds_since_last_updated >= 60
 
-    async def async_update_schedule(self):
-        schedules = await self.get_schedules()
+            state = await self._get_state()
 
-        if schedules:
-            _LOGGER.debug(f"Schedules: {schedules}")
-            self.schedules = schedules
+            if state:
+                _LOGGER.debug(f"State: {state}")
+                self.state = state
+
+            if should_update_schedules:
+                schedules = await self._get_schedules()
+
+                if schedules:
+                    _LOGGER.debug(f"Schedules: {schedules}")
+                    self.schedules = schedules
+
+            self.last_update = datetime.utcnow()
+            self.is_updating = False
 
     async def create_schedule(self, days: List[str], start_time: str, stop_time: str):
         is_success = False
@@ -67,11 +82,13 @@ class SwitcherApi:
 
             async with SwitcherClient(self.ip_address, self.device_id) as api:
                 state = await api.create_schedule(start_time, stop_time, selected_days)
-                _LOGGER.debug(f"Create Schedule request returned: {state}")
 
-                response = _serialize_object(state)
+                if state.successful:
+                    _LOGGER.debug(f"Create Schedule successfully completed, Response: {state}")
+                else:
+                    _LOGGER.error(f"Failed to Create Schedule")
 
-                is_success = response is not None
+                is_success = state.successful
 
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
@@ -82,17 +99,18 @@ class SwitcherApi:
         return is_success
 
     async def delete_schedule(self, schedule_id: str):
-        """Use for handling requests to /switcher_api/delete_schedule."""
         is_success = False
 
         try:
             async with SwitcherClient(self.ip_address, self.device_id) as api:
                 state = await api.delete_schedule(schedule_id)
-                _LOGGER.debug(f"Delete Schedule request returned: {state}")
 
-                response = _serialize_object(state)
+                if state.successful:
+                    _LOGGER.debug(f"Delete Schedule successfully completed, Response: {state}")
+                else:
+                    _LOGGER.error(f"Failed to Delete Schedule")
 
-                is_success = response is not None
+                is_success = state.successful
 
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
@@ -102,37 +120,58 @@ class SwitcherApi:
 
         return is_success
 
-    async def get_schedules(self):
-        """Use for handling requests to /switcher_api/get_schedules."""
+    async def _get_schedules(self):
         response = None
 
         try:
             async with SwitcherClient(self.ip_address, self.device_id) as api:
                 state = await api.get_schedules()
-                _LOGGER.debug(f"Get Schedules request returned: {state}")
 
-                response = _serialize_object(state)
+                if state.successful:
+                    response = _serialize_object(state)
+                    _LOGGER.debug(f"Retrieve schedules successfully completed, Response: {state}")
+
+                else:
+                    _LOGGER.error(f"Failed to retrieve schedules")
+
+        except GeneratorExit as gex:
+            exc_type, exc_obj, tb = sys.exc_info()
+            line = tb.tb_lineno
+            error_details = f"Generator Exit Error: {gex.args}, Line: {line}"
+
+            _LOGGER.error(f"Failed to get the device, {self.device_details}, {error_details}")
 
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
             line = tb.tb_lineno
 
             _LOGGER.error(
-                f"Failed to get the device schedules, {self.device_details}, Error: {ex}, Line: {line}"
+                f"Failed to get the device ,schedules {self.device_details}, Error: {ex}, Line: {line}"
             )
 
         return response
 
-    async def get_state(self) -> dict:
-        """Use for handling requests to /switcher_api/get_state."""
+    async def _get_state(self) -> dict:
         response = None
 
         try:
             async with SwitcherClient(self.ip_address, self.device_id) as api:
                 state = await api.get_state()
-                _LOGGER.debug(f"Get State request returned: {state}")
 
-                response = _serialize_object(state)
+                if state.successful:
+                    response = _serialize_object(state)
+                    _LOGGER.debug(f"Retrieved state successfully completed, Response: {state}")
+
+                else:
+                    _LOGGER.error(f"Failed to retrieve state")
+
+        except GeneratorExit as gex:
+            exc_type, exc_obj, tb = sys.exc_info()
+            line = tb.tb_lineno
+
+            error_details = f"Generator Exit Error: {gex.args}, Line: {line}"
+
+            _LOGGER.error(f"Failed to get the device state, {self.device_details}, {error_details}")
 
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
@@ -143,18 +182,19 @@ class SwitcherApi:
         return response
 
     async def set_auto_shutdown(self, time_span: time):
-        """Use for handling requests to /switcher_api/set_auto_shutdown."""
         is_success = False
 
         try:
             async with SwitcherClient(self.ip_address, self.device_id) as api:
                 auto_shutdown = timedelta(hours=time_span.hour, minutes=time_span.minute)
                 state = await api.set_auto_shutdown(auto_shutdown)
-                _LOGGER.debug(f"Set Automatic Shutdown request returned: {state}")
 
-                response = _serialize_object(state)
+                if state.successful:
+                    _LOGGER.debug(f"Auto Shutdown Set successfully completed, Response: {state}")
+                else:
+                    _LOGGER.error(f"Failed to Set Auto Shutdown")
 
-                is_success = response is not None
+                is_success = state.successful
 
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
@@ -167,17 +207,18 @@ class SwitcherApi:
         return is_success
 
     async def set_device_name(self, new_name: str):
-        """Use for handling requests to /switcher_api/set_device_name."""
         is_success = False
 
         try:
             async with SwitcherClient(self.ip_address, self.device_id) as api:
                 state = await api.set_device_name(new_name)
-                _LOGGER.debug(f"Set Device Name request returned: {state}")
 
-                response = _serialize_object(state)
+                if state.successful:
+                    _LOGGER.debug(f"Device Name Set successfully completed, Response: {state}")
+                else:
+                    _LOGGER.error(f"Failed to Set Device Name")
 
-                is_success = response is not None
+                is_success = state.successful
 
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
@@ -188,40 +229,38 @@ class SwitcherApi:
         return is_success
 
     async def turn_off(self):
-        """Use for handling requests to /switcher_api/turn_off."""
-        is_success = False
-        try:
-            async with SwitcherClient(self.ip_address, self.device_id) as api:
-                state = await api.control_device(Command.OFF)
-                _LOGGER.debug(f"Turn Off request returned: {state}")
-
-                response = _serialize_object(state)
-
-                is_success = response is not None
-
-        except Exception as ex:
-            exc_type, exc_obj, tb = sys.exc_info()
-            line = tb.tb_lineno
-
-            _LOGGER.error(f"Failed turning off the device, {self.device_details}, Error: {ex}, Line: {line}")
+        is_success = await self._toggle_state(False)
 
         return is_success
 
     async def turn_on(self, minutes: Optional[int] = 0):
-        """Use for handling requests to /switcher_api/turn_on."""
+        is_success = await self._toggle_state(True, minutes)
+
+        return is_success
+
+    async def _toggle_state(self, action: bool, minutes: Optional[int] = 0):
         is_success = False
+        command = Command.ON if action else Command.OFF
+        command_name = "On" if action else "Off"
+
         try:
             async with SwitcherClient(self.ip_address, self.device_id) as api:
-                state = await api.control_device(Command.ON, minutes)
-                _LOGGER.debug(f"Turn On request returned: {state}")
+                state = await api.control_device(command, minutes)
 
-                response = _serialize_object(state)
+                if state.successful:
+                    _LOGGER.debug(f"Turn {command_name} successfully completed, Response: {state}")
 
-                is_success = response is not None
+                    await self.async_update()
+
+                else:
+                    _LOGGER.error(f"Failed to Turn {command_name}, {self.device_details}")
+
+                is_success = state.successful
+
         except Exception as ex:
             exc_type, exc_obj, tb = sys.exc_info()
             line = tb.tb_lineno
 
-            _LOGGER.error(f"Failed turning on the device, {self.device_details}, Error: {ex}, Line: {line}")
+            _LOGGER.error(f"Failed to Turn {command_name} the device, {self.device_details}, Error: {ex}, Line: {line}")
 
         return is_success

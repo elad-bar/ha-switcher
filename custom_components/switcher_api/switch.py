@@ -57,30 +57,12 @@ class Switch(SwitchEntity, BaseEntity):
         if self.entity_type == SWITCH_MAIN:
             await self.api.turn_on()
 
-            await self.api.async_update_state()
-        else:
-            details = self.entity.details
-            schedule_data = details.get(KEY_SCHEDULE_DATA)
-
-            await self.api.enable_schedule(schedule_data)
-
-            await self.api.async_update_schedule()
-
         self.ha.async_update()
 
     async def async_turn_off(self, **kwargs):
         """Turn device off."""
         if self.entity_type == SWITCH_MAIN:
             await self.api.turn_off()
-
-            await self.api.async_update_state()
-        else:
-            details = self.entity.details
-            schedule_data = details.get(KEY_SCHEDULE_DATA)
-
-            await self.api.disable_schedule(schedule_data)
-
-            await self.api.async_update_schedule()
 
         self.ha.async_update()
 

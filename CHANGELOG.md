@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.2
+
+- Improved data fetching process
+
 ## v1.1.1
 
 - Descriptive error message once switcher failure
