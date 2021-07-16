@@ -38,6 +38,10 @@ class SwitcherApi:
     def device_id(self):
         return self.config_data.device_id
 
+    @property
+    def device_details(self):
+        return f"IP: {self.ip_address}, Device: {self.device_id}"
+
     async def async_update_state(self):
         state = await self.get_state()
 
@@ -73,7 +77,7 @@ class SwitcherApi:
             exc_type, exc_obj, tb = sys.exc_info()
             line = tb.tb_lineno
 
-            _LOGGER.error(f"Failed creating new schedule, Error: {ex}, Line: {line}")
+            _LOGGER.error(f"Failed creating new schedule, {self.device_details}, Error: {ex}, Line: {line}")
 
         return is_success
 
@@ -94,7 +98,7 @@ class SwitcherApi:
             exc_type, exc_obj, tb = sys.exc_info()
             line = tb.tb_lineno
 
-            _LOGGER.error(f"Failed deleting schedule, Error: {ex}, Line: {line}")
+            _LOGGER.error(f"Failed deleting schedule, {self.device_details}, Error: {ex}, Line: {line}")
 
         return is_success
 
@@ -114,7 +118,7 @@ class SwitcherApi:
             line = tb.tb_lineno
 
             _LOGGER.error(
-                f"Failed to get the device schedules, Error: {ex}, Line: {line}"
+                f"Failed to get the device schedules, {self.device_details}, Error: {ex}, Line: {line}"
             )
 
         return response
@@ -134,7 +138,7 @@ class SwitcherApi:
             exc_type, exc_obj, tb = sys.exc_info()
             line = tb.tb_lineno
 
-            _LOGGER.error(f"Failed to get the device state, Error: {ex}, Line: {line}")
+            _LOGGER.error(f"Failed to get the device state, {self.device_details}, Error: {ex}, Line: {line}")
 
         return response
 
@@ -157,7 +161,7 @@ class SwitcherApi:
             line = tb.tb_lineno
 
             _LOGGER.error(
-                f"Failed setting auto shutdown on device, Error: {ex}, Line: {line}"
+                f"Failed setting auto shutdown on device, {self.device_details}, Error: {ex}, Line: {line}"
             )
 
         return is_success
@@ -179,7 +183,7 @@ class SwitcherApi:
             exc_type, exc_obj, tb = sys.exc_info()
             line = tb.tb_lineno
 
-            _LOGGER.error(f"Failed setting the device name, Error: {ex}, Line: {line}")
+            _LOGGER.error(f"Failed setting the device name, {self.device_details}, Error: {ex}, Line: {line}")
 
         return is_success
 
@@ -199,7 +203,7 @@ class SwitcherApi:
             exc_type, exc_obj, tb = sys.exc_info()
             line = tb.tb_lineno
 
-            _LOGGER.error(f"Failed turning off the device, Error: {ex}, Line: {line}")
+            _LOGGER.error(f"Failed turning off the device, {self.device_details}, Error: {ex}, Line: {line}")
 
         return is_success
 
@@ -218,6 +222,6 @@ class SwitcherApi:
             exc_type, exc_obj, tb = sys.exc_info()
             line = tb.tb_lineno
 
-            _LOGGER.error(f"Failed turning on the device, Error: {ex}, Line: {line}")
+            _LOGGER.error(f"Failed turning on the device, {self.device_details}, Error: {ex}, Line: {line}")
 
         return is_success

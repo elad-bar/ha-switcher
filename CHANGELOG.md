@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.1.1
+
+- Descriptive error message once switcher failure
+- Added missing `iot_class`
+- Upgraded `aioswitcher` to v2.0.4
+
 ## v1.1.0
 
 #### BREAKING CHANGES:
